@@ -22,7 +22,6 @@ export default function Admin() {
     <div className="page-enter min-h-[calc(100vh-66px)] pt-[66px] pb-12">
       <div className="max-w-6xl mx-auto px-6 py-10">
 
-        {/* Header */}
         <div className="flex items-end justify-between flex-wrap gap-4 mb-8">
           <div>
             <h1
@@ -44,7 +43,6 @@ export default function Admin() {
           </span>
         </div>
 
-        {/* Stat cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {[
             { icon: '🗳️', value: '4,218', label: 'Total Votes' },
@@ -60,10 +58,8 @@ export default function Admin() {
           ))}
         </div>
 
-        {/* Main grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-          {/* Bar chart */}
           <div className="glass-card rounded-2xl p-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-bebas text-[1.45rem] tracking-wide text-[#111010]">Votes Per Candidate</h2>
@@ -91,7 +87,6 @@ export default function Admin() {
             </div>
           </div>
 
-          {/* Fraud log */}
           <div className="glass-card rounded-2xl p-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-bebas text-[1.45rem] tracking-wide text-[#111010]">Fraud Detection Log</h2>
@@ -130,7 +125,6 @@ export default function Admin() {
           </div>
         </div>
 
-        {/* Candidates management hint */}
         <div className="mt-5 glass-card rounded-2xl p-5 flex items-center justify-between flex-wrap gap-3">
           <div>
             <h3 className="font-bebas text-[1.2rem] tracking-wide text-[#111010]">Candidate Management</h3>

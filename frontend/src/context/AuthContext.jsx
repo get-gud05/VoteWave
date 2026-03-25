@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useCallback } from 'react'
 
 const AuthContext = createContext(null)
 
-// Mock users — replace with real API calls later
 const MOCK_USERS = [
   { id: '1', name: 'Admin User',   email: 'admin@votewave.com', password: 'admin123',  role: 'admin',  hasVoted: false },
   { id: '2', name: 'Arjun Rawat',  email: 'arjun@example.com',  password: 'password1', role: 'voter',  hasVoted: false },
@@ -10,7 +9,7 @@ const MOCK_USERS = [
 ]
 
 export function AuthProvider({ children }) {
-  const [user, setUser]     = useState(null)   // null = logged out
+  const [user, setUser]     = useState(null)   
   const [toast, setToast]   = useState(null)
 
   const showToast = useCallback((msg, type = 'success') => {
@@ -18,7 +17,7 @@ export function AuthProvider({ children }) {
     setTimeout(() => setToast(null), 2800)
   }, [])
 
-  // ── Login ──────────────────────────────────────────
+  
   const login = useCallback((email, password) => {
     const found = MOCK_USERS.find(
       u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
@@ -28,7 +27,7 @@ export function AuthProvider({ children }) {
     return { ok: true, role: found.role }
   }, [])
 
-  // ── Register ───────────────────────────────────────
+  
   const register = useCallback((name, email, password) => {
     const exists = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase())
     if (exists) return { ok: false, error: 'An account with this email already exists.' }
@@ -38,10 +37,10 @@ export function AuthProvider({ children }) {
     return { ok: true }
   }, [])
 
-  // ── Logout ─────────────────────────────────────────
+  
   const logout = useCallback(() => setUser(null), [])
 
-  // ── Mark voted ────────────────────────────────────
+  
   const markVoted = useCallback(() => {
     setUser(prev => ({ ...prev, hasVoted: true }))
     const u = MOCK_USERS.find(u => u.id === user?.id)

@@ -10,7 +10,6 @@ export default function Vote() {
   const [showModal, setShowModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
-  // Already voted — show banner instead of redirecting
   if (user?.hasVoted) {
     return (
       <div className="page-enter min-h-[calc(100vh-66px)] pt-[66px] flex items-center justify-center px-6">
@@ -53,7 +52,6 @@ export default function Vote() {
     <div className="page-enter min-h-[calc(100vh-66px)] pt-[66px] pb-36">
       <div className="max-w-5xl mx-auto px-6 py-10">
 
-        {/* Header */}
         <div className="mb-10">
           <h1
             className="font-bebas text-[#111010] leading-[0.88]"
@@ -65,7 +63,6 @@ export default function Vote() {
             Choose wisely. Every ballot counts.
           </p>
 
-          {/* Status chips */}
           <div className="flex flex-wrap gap-2 mt-4">
             {[
               { icon: '🟢', label: 'Election Live', pulse: true },
@@ -87,7 +84,6 @@ export default function Vote() {
           </div>
         </div>
 
-        {/* Candidates grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {CANDIDATES.map(c => (
             <button
@@ -95,7 +91,7 @@ export default function Vote() {
               onClick={() => setSelected(c.id)}
               className={`candidate-card text-left ${selected === c.id ? 'selected' : ''}`}
             >
-              {/* Select indicator */}
+              
               <div className={`absolute top-4 right-4 w-6 h-6 rounded-full flex items-center justify-center text-xs transition-all duration-200
                 ${selected === c.id
                   ? 'bg-[#ff6b35] text-white shadow-md'
@@ -104,7 +100,6 @@ export default function Vote() {
                 {selected === c.id ? '✓' : ''}
               </div>
 
-              {/* Avatar */}
               <div
                 className="w-16 h-16 rounded-full flex items-center justify-center text-3xl mb-4"
                 style={{ background: c.color }}
@@ -120,7 +115,6 @@ export default function Vote() {
         </div>
       </div>
 
-      {/* Sticky action bar */}
       <div
         className="fixed bottom-6 left-1/2 z-40 flex items-center justify-between gap-4 px-6 py-4 rounded-2xl"
         style={{
@@ -146,7 +140,6 @@ export default function Vote() {
         </button>
       </div>
 
-      {/* Confirm modal */}
       {showModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center px-6"

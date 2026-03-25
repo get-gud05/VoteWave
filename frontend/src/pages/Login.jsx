@@ -45,7 +45,6 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Right panel — form */}
       <div className="glass-panel w-full md:w-[460px] md:min-w-[400px] flex items-center justify-center px-8 py-14">
         <div className="w-full max-w-[360px]">
           <h3 className="font-bebas text-[2.8rem] tracking-wide text-[#111010]">Sign In</h3>
@@ -100,7 +99,6 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Hint for demo */}
           <div className="mt-6 p-3 rounded-xl text-[0.75rem] font-dm text-[#7a7a9a]"
                style={{ background: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.6)' }}>
             <p className="font-semibold text-[#3d3d5c] mb-1">Demo credentials</p>

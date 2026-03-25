@@ -32,7 +32,6 @@ export default function Register() {
   return (
     <div className="page-enter min-h-[calc(100vh-66px)] pt-[66px] flex">
 
-      {/* Left branding */}
       <div className="hidden md:flex flex-1 flex-col items-center justify-center px-12 relative overflow-hidden">
         <h2
           className="font-bebas text-[#111010] text-center leading-[0.88] z-10 relative"
@@ -51,7 +50,6 @@ export default function Register() {
         </div>
       </div>
 
-      {/* Right form */}
       <div className="glass-panel w-full md:w-[460px] md:min-w-[400px] flex items-center justify-center px-8 py-10">
         <div className="w-full max-w-[360px]">
           <h3 className="font-bebas text-[2.8rem] tracking-wide text-[#111010]">Register</h3>
