@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback } from 'react'
+import API from "../services/api"
 
 const AuthContext = createContext(null)
 
@@ -18,24 +19,35 @@ export function AuthProvider({ children }) {
   }, [])
 
   
-  const login = useCallback((email, password) => {
-    const found = MOCK_USERS.find(
-      u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-    )
-    if (!found) return { ok: false, error: 'Invalid email or password.' }
-    setUser({ ...found })
-    return { ok: true, role: found.role }
-  }, [])
+
+  const login = async (email, password) => {
+    try {
+      const res = await API.post("/auth/login", { email, password });
+
+      setUser(res.data);
+      return { ok: true, role: res.data.role };
+
+    } catch (err) {
+      return { ok: false, error: "Invalid credentials" };
+    }
+  };
 
   
-  const register = useCallback((name, email, password) => {
-    const exists = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase())
-    if (exists) return { ok: false, error: 'An account with this email already exists.' }
-    const newUser = { id: Date.now().toString(), name, email, password, role: 'voter', hasVoted: false }
-    MOCK_USERS.push(newUser)
-    setUser({ ...newUser })
-    return { ok: true }
-  }, [])
+  const register = async (name, email, password) => {
+    try {
+      const res = await API.post("/auth/register", {
+        name,
+        email,
+        password,
+      });
+
+      setUser(res.data);
+      return { ok: true };
+
+    } catch (err) {
+      return { ok: false, error: "User already exists" };
+    }
+  };
 
   
   const logout = useCallback(() => setUser(null), [])
