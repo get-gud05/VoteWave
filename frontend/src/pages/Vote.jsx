@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { CANDIDATES } from '../utils/candidates'
+import API from "../services/api";
 
 export default function Vote() {
   const { user, markVoted, showToast } = useAuth()
@@ -9,6 +10,13 @@ export default function Vote() {
   const [selected, setSelected] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [backendCandidates, setBackendCandidates] = useState([]);
+
+  useEffect(() => {
+    API.get("/candidates")
+      .then(res => setBackendCandidates(res.data))
+      .catch(() => console.error("Failed to load candidates"));
+  }, []);
 
   if (user?.hasVoted) {
     return (
@@ -34,19 +42,29 @@ export default function Vote() {
     )
   }
 
-  const selectedCandidate = CANDIDATES.find(c => c.id === selected)
+  const selectedCandidate = backendCandidates.find(c => c.id === selected)
 
-  const handleSubmit = () => {
-    if (!selected) return
-    setSubmitting(true)
-    // Simulate API call → Spring Boot → Flask fraud check
-    setTimeout(() => {
-      markVoted()
-      setShowModal(false)
-      showToast('✅ Vote cast! Fraud check passed.')
-      setTimeout(() => navigate('/'), 1800)
-    }, 1200)
-  }
+  const handleSubmit = async () => {
+  if (!selected) return;
+
+  setSubmitting(true);
+
+  try {
+      await API.post("/vote", {
+        userId: user.id,
+        candidateId: selected,
+      });
+
+      markVoted();
+      setShowModal(false);
+      showToast("✅ Vote cast successfully");
+
+    } catch (err) {
+      showToast("❌ Error voting", "error");
+    }
+
+    setSubmitting(false);
+  };
 
   return (
     <div className="page-enter min-h-[calc(100vh-66px)] pt-[66px] pb-36">
@@ -85,33 +103,45 @@ export default function Vote() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {CANDIDATES.map(c => (
-            <button
-              key={c.id}
-              onClick={() => setSelected(c.id)}
-              className={`candidate-card text-left ${selected === c.id ? 'selected' : ''}`}
-            >
-              
-              <div className={`absolute top-4 right-4 w-6 h-6 rounded-full flex items-center justify-center text-xs transition-all duration-200
-                ${selected === c.id
-                  ? 'bg-[#ff6b35] text-white shadow-md'
-                  : 'border-2 border-black/10'}`}
-              >
-                {selected === c.id ? '✓' : ''}
-              </div>
+          {backendCandidates.map(c => {
+            const ui = CANDIDATES.find(x => x.id === c.id)
 
-              <div
-                className="w-16 h-16 rounded-full flex items-center justify-center text-3xl mb-4"
-                style={{ background: c.color }}
+            return (
+              <button
+                key={c.id}
+                onClick={() => setSelected(c.id)}
+                className={`candidate-card text-left ${selected === c.id ? 'selected' : ''}`}
               >
-                {c.emoji}
-              </div>
+                
+                <div className={`absolute top-4 right-4 w-6 h-6 rounded-full flex items-center justify-center text-xs transition-all duration-200
+                  ${selected === c.id
+                    ? 'bg-[#ff6b35] text-white shadow-md'
+                    : 'border-2 border-black/10'}`}
+                >
+                  {selected === c.id ? '✓' : ''}
+                </div>
 
-              <div className="font-bebas text-[1.55rem] tracking-wide text-[#111010]">{c.name}</div>
-              <div className="font-dm text-[0.72rem] uppercase tracking-[1.5px] text-[#7a7a9a] mt-0.5">{c.party}</div>
-              <p className="font-dm text-[0.84rem] text-[#3d3d5c] mt-2.5 leading-relaxed">{c.bio}</p>
-            </button>
-          ))}
+                <div
+                  className="w-16 h-16 rounded-full flex items-center justify-center text-3xl mb-4"
+                  style={{ background: ui?.color }}
+                >
+                  {ui?.emoji}
+                </div>
+
+                <div className="font-bebas text-[1.55rem] tracking-wide text-[#111010]">
+                  {c.name}
+                </div>
+
+                <div className="font-dm text-[0.72rem] uppercase tracking-[1.5px] text-[#7a7a9a] mt-0.5">
+                  {c.party}
+                </div>
+
+                <p className="font-dm text-[0.84rem] text-[#3d3d5c] mt-2.5 leading-relaxed">
+                  {ui?.bio}
+                </p>
+              </button>
+            )
+          })}
         </div>
       </div>
 
