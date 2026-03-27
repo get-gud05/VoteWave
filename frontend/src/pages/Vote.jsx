@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { CANDIDATES } from '../utils/candidates'
@@ -17,6 +17,8 @@ export default function Vote() {
       .then(res => setBackendCandidates(res.data))
       .catch(() => console.error("Failed to load candidates"));
   }, []);
+
+  console.log("CANDIDATES:", backendCandidates);
 
   if (user?.hasVoted) {
     return (
