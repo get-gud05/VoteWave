@@ -1,23 +1,75 @@
-import { CANDIDATES } from '../utils/candidates'
+import { useEffect, useState } from 'react'
+import API from '../services/api'
 
-const FRAUD_LOGS = [
-  { user: 'u_9f2b**', score: 0.91, risk: 'high',   time: '14:32', action: 'Blocked' },
-  { user: 'u_3a7c**', score: 0.74, risk: 'high',   time: '13:58', action: 'Blocked' },
-  { user: 'u_5e1d**', score: 0.48, risk: 'medium', time: '13:21', action: 'Flagged' },
-  { user: 'u_2b8f**', score: 0.31, risk: 'medium', time: '12:44', action: 'Flagged' },
-  { user: 'u_7g4h**', score: 0.12, risk: 'low',    time: '11:09', action: 'Allowed' },
-]
-
-const riskStyle = {
-  high:   { bg: 'rgba(239,68,68,0.1)',   color: '#ef4444' },
-  medium: { bg: 'rgba(245,158,11,0.1)',  color: '#f59e0b' },
-  low:    { bg: 'rgba(34,197,94,0.1)',   color: '#22c55e' },
-}
-
-const total = CANDIDATES.reduce((s, c) => s + c.votes, 0)
 const BAR_COLORS = ['#f5c6e0', '#b8f0d8', '#b8d8f0', '#f5d8b0', '#d4b8f0']
 
 export default function Admin() {
+  const [candidates, setCandidates] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [showModal, setShowModal] = useState(false)
+  const [formData, setFormData] = useState({ name: '' })
+  const [adding, setAdding] = useState(false)
+  const [formError, setFormError] = useState(null)
+
+  useEffect(() => {
+    fetchCandidates()
+  }, [])
+
+  const fetchCandidates = async () => {
+    try {
+      const res = await API.get('/candidates')
+      setCandidates(res.data || [])
+    } catch (err) {
+      setError('Failed to fetch candidates')
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddCandidate = async (e) => {
+    e.preventDefault()
+    setFormError(null)
+    setError(null)
+
+    if (!formData.name.trim()) {
+      setFormError('Please enter a candidate name')
+      return
+    }
+
+    setAdding(true)
+    try {
+      const res = await API.post('/candidates', {
+        name: formData.name.trim(),
+      })
+      setCandidates([...candidates, res.data])
+      setFormData({ name: '' })
+      setShowModal(false)
+    } catch (err) {
+      setFormError('Failed to add candidate')
+      console.error(err)
+    } finally {
+      setAdding(false)
+    }
+  }
+
+  const handleDeleteCandidate = async (id) => {
+    if (!window.confirm('Are you sure you want to remove this candidate?')) return
+
+    try {
+      await API.delete(`/candidates/${id}`)
+      setCandidates(candidates.filter(c => (c._id || c.id) !== id))
+      setError(null) // Clear any previous errors
+    } catch (err) {
+      console.error('Delete error:', err)
+      setError('Failed to delete candidate')
+      setTimeout(() => setError(null), 3000) // Clear error after 3 seconds
+    }
+  }
+
+  const total = candidates.reduce((s, c) => s + (c.votes || 0), 0)
+
   return (
     <div className="page-enter min-h-[calc(100vh-66px)] pt-[66px] pb-12">
       <div className="max-w-6xl mx-auto px-6 py-10">
@@ -28,10 +80,10 @@ export default function Admin() {
               className="font-bebas text-[#111010] leading-[0.88]"
               style={{ fontSize: 'clamp(2.8rem, 7vw, 5rem)' }}
             >
-              ADMIN<br />PANEL
+              ELECTION<br />RESULTS
             </h1>
             <p className="font-dm text-[0.78rem] uppercase tracking-[1px] text-[#7a7a9a] mt-2">
-              March 25, 2026 · Live Election Dashboard
+              Live Voting Dashboard
             </p>
           </div>
           <span
@@ -43,97 +95,111 @@ export default function Admin() {
           </span>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {[
-            { icon: '🗳️', value: '4,218', label: 'Total Votes' },
-            { icon: '👥', value: '5,890', label: 'Registered' },
-            { icon: '🚨', value: '7',     label: 'Fraud Flags' },
-            { icon: '📈', value: '71.6%', label: 'Turnout Rate' },
-          ].map(s => (
-            <div key={s.label} className="glass-card rounded-2xl p-5 hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
-              <div className="text-2xl mb-3">{s.icon}</div>
-              <div className="font-bebas text-[2.4rem] text-[#111010] leading-none">{s.value}</div>
-              <div className="font-dm text-[0.72rem] uppercase tracking-[1px] text-[#7a7a9a] mt-1">{s.label}</div>
-            </div>
-          ))}
-        </div>
+        <div className="glass-card rounded-2xl p-8 max-w-2xl">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="font-bebas text-[1.8rem] tracking-wide text-[#111010]">Candidate Votes</h2>
+            <span className="font-dm text-[0.85rem] font-semibold text-[#7a7a9a]">
+              Total: {total.toLocaleString()}
+            </span>
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {loading && <p className="text-[0.85rem] text-[#7a7a9a]">Loading candidates...</p>}
+          {error && <p className="text-[0.85rem] text-red-500">{error}</p>}
+          {!loading && !error && candidates.length === 0 && (
+            <p className="text-[0.85rem] text-[#7a7a9a]">No candidates found</p>
+          )}
 
-          <div className="glass-card rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="font-bebas text-[1.45rem] tracking-wide text-[#111010]">Votes Per Candidate</h2>
-              <span className="font-dm text-[0.7rem] px-2.5 py-1 rounded-full text-[#3d3d5c]"
-                    style={{ background: 'rgba(0,0,0,0.05)' }}>Live</span>
-            </div>
-            <div className="space-y-4">
-              {CANDIDATES.map((c, i) => {
-                const pct = ((c.votes / total) * 100).toFixed(1)
-                return (
-                  <div key={c.id}>
-                    <div className="flex justify-between font-dm text-[0.82rem] mb-1.5">
-                      <span className="font-medium text-[#111010]">{c.name}</span>
-                      <span className="text-[#7a7a9a]">{c.votes.toLocaleString()} · {pct}%</span>
-                    </div>
-                    <div className="h-2.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.06)' }}>
-                      <div
-                        className="h-full rounded-full"
-                        style={{ width: `${pct}%`, background: BAR_COLORS[i], transition: 'width 1.2s cubic-bezier(0.16,1,0.3,1)' }}
-                      />
+          <div className="space-y-6">
+            {!loading && !error && candidates.map((c, i) => {
+              const pct = total > 0 ? (((c.votes || 0) / total) * 100).toFixed(1) : 0
+              return (
+                <div key={c._id || c.id || i}>
+                  <div className="flex justify-between items-center font-dm text-[0.95rem] mb-2">
+                    <span className="font-semibold text-[#111010]">{c.name}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="font-bebas text-[1.3rem] text-[#ff6b35]">{c.votes || 0}</span>
+                      <button
+                        onClick={() => handleDeleteCandidate(c._id || c.id)}
+                        className="text-red-500 hover:text-red-700 transition-colors text-[0.8rem] font-medium"
+                        title="Remove candidate"
+                      >
+                        ✕
+                      </button>
                     </div>
                   </div>
-                )
-              })}
-            </div>
-          </div>
-
-          <div className="glass-card rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="font-bebas text-[1.45rem] tracking-wide text-[#111010]">Fraud Detection Log</h2>
-              <span className="font-dm text-[0.7rem] px-2.5 py-1 rounded-full text-[#3d3d5c]"
-                    style={{ background: 'rgba(0,0,0,0.05)' }}>ML Powered</span>
-            </div>
-            <table className="w-full">
-              <thead>
-                <tr>
-                  {['User', 'Score', 'Risk', 'Time', 'Action'].map(h => (
-                    <th key={h} className="text-left font-dm text-[0.68rem] uppercase tracking-[1px] text-[#7a7a9a] pb-3 border-b border-black/[0.06]">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {FRAUD_LOGS.map((f, i) => (
-                  <tr key={i} className="border-b border-black/[0.04]">
-                    <td className="font-dm text-[0.82rem] text-[#3d3d5c] py-3">{f.user}</td>
-                    <td className="font-bebas text-[1.05rem] text-[#111010] py-3">{f.score}</td>
-                    <td className="py-3">
-                      <span
-                        className="font-dm text-[0.7rem] font-semibold px-2.5 py-0.5 rounded-full uppercase"
-                        style={{ background: riskStyle[f.risk].bg, color: riskStyle[f.risk].color }}
-                      >
-                        {f.risk}
-                      </span>
-                    </td>
-                    <td className="font-dm text-[0.8rem] text-[#7a7a9a] py-3">{f.time}</td>
-                    <td className="font-dm text-[0.8rem] py-3" style={{ color: riskStyle[f.risk].color }}>{f.action}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                  <div className="h-3 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.06)' }}>
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${pct}%`, background: BAR_COLORS[i % BAR_COLORS.length], transition: 'width 1.2s cubic-bezier(0.16,1,0.3,1)' }}
+                    />
+                  </div>
+                  <p className="text-[0.72rem] text-[#7a7a9a] mt-1">{pct}%</p>
+                </div>
+              )
+            })}
           </div>
         </div>
 
-        <div className="mt-5 glass-card rounded-2xl p-5 flex items-center justify-between flex-wrap gap-3">
+        <div className="mt-8 glass-card rounded-2xl p-6 flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h3 className="font-bebas text-[1.2rem] tracking-wide text-[#111010]">Candidate Management</h3>
-            <p className="font-dm text-[0.8rem] text-[#7a7a9a] mt-0.5">Add, edit or remove candidates from the election.</p>
+            <h3 className="font-bebas text-[1.3rem] tracking-wide text-[#111010]">Add Candidates</h3>
+            <p className="font-dm text-[0.8rem] text-[#7a7a9a] mt-0.5">Add new candidates to the election.</p>
           </div>
-          <button className="btn-ghost px-6 py-2.5 rounded-full text-[0.85rem]">
-            Manage Candidates →
+          <button 
+            onClick={() => setShowModal(true)}
+            className="btn-dark px-6 py-2.5 rounded-full text-[0.85rem]"
+          >
+            + Add Candidate
           </button>
         </div>
+
+        {/* Modal */}
+        {showModal && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="glass-card rounded-2xl p-8 max-w-md w-full animate-in">
+              <h3 className="font-bebas text-[1.8rem] tracking-wide text-[#111010] mb-6">Add New Candidate</h3>
+              
+              <form onSubmit={handleAddCandidate} className="space-y-4">
+                <div>
+                  <label className="block text-[0.72rem] font-dm font-medium uppercase tracking-[0.8px] text-[#3d3d5c] mb-1.5">
+                    Candidate Name
+                  </label>
+                  <input
+                    type="text"
+                    className="form-input w-full"
+                    placeholder="e.g., John Doe"
+                    value={formData.name}
+                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    required
+                  />
+                </div>
+
+                {formError && (
+                  <p className="text-[0.82rem] font-dm text-red-500 bg-red-50/60 px-3 py-2 rounded-lg">
+                    {formError}
+                  </p>
+                )}
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="btn-ghost flex-1 py-2.5 rounded-lg text-[0.85rem]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={adding}
+                    className="btn-dark flex-1 py-2.5 rounded-lg text-[0.85rem] disabled:opacity-60"
+                  >
+                    {adding ? 'Adding...' : 'Add Candidate'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

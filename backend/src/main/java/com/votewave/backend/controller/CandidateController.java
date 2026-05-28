@@ -20,4 +20,16 @@ public class CandidateController {
     public List<Candidate> getAll() {
         return repo.findAll();
     }
+
+    @PostMapping
+    public Candidate addCandidate(@RequestBody Candidate candidate) {
+        candidate.setVotes(0);
+        return repo.save(candidate);
+    }
+
+    @DeleteMapping("/{id}")
+    public java.util.Map<String, String> deleteCandidate(@PathVariable String id) {
+        repo.deleteById(id);
+        return java.util.Map.of("message", "Candidate deleted successfully");
+    }
 }
