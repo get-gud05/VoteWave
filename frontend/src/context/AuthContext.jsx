@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import API from "../services/api"
 
 const AuthContext = createContext(null)
@@ -12,19 +12,33 @@ const MOCK_USERS = [
 export function AuthProvider({ children }) {
   const [user, setUser]     = useState(null)   
   const [toast, setToast]   = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  // Load user from localStorage on mount
+  useEffect(() => {
+    const savedUser = localStorage.getItem('user')
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser))
+      } catch (err) {
+        console.error('Failed to parse saved user', err)
+        localStorage.removeItem('user')
+      }
+    }
+    setLoading(false)
+  }, [])
 
   const showToast = useCallback((msg, type = 'success') => {
     setToast({ msg, type })
     setTimeout(() => setToast(null), 2800)
   }, [])
 
-  
-
   const login = async (email, password) => {
     try {
       const res = await API.post("/auth/login", { email, password });
 
       setUser(res.data);
+      localStorage.setItem('user', JSON.stringify(res.data));
       return { ok: true, role: res.data.role };
 
     } catch (err) {
@@ -32,7 +46,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  
   const register = async (name, email, password) => {
     try {
       const res = await API.post("/auth/register", {
@@ -42,6 +55,7 @@ export function AuthProvider({ children }) {
       });
 
       setUser(res.data);
+      localStorage.setItem('user', JSON.stringify(res.data));
       return { ok: true };
 
     } catch (err) {
@@ -49,10 +63,11 @@ export function AuthProvider({ children }) {
     }
   };
 
-  
-  const logout = useCallback(() => setUser(null), [])
+  const logout = useCallback(() => {
+    setUser(null);
+    localStorage.removeItem('user');
+  }, [])
 
-  
   const markVoted = useCallback(() => {
     setUser(prev => ({ ...prev, hasVoted: true }))
     const u = MOCK_USERS.find(u => u.id === user?.id)
@@ -60,7 +75,7 @@ export function AuthProvider({ children }) {
   }, [user])
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, markVoted, toast, showToast }}>
+    <AuthContext.Provider value={{ user, login, register, logout, markVoted, toast, showToast, loading }}>
       {children}
     </AuthContext.Provider>
   )

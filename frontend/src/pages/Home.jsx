@@ -57,7 +57,7 @@ export default function Home() {
         )}
       </div>
 
-      <div
+      {/* <div
         className="flex mt-14 rounded-2xl overflow-hidden divide-x divide-black/[0.07] animate-hero-4"
         style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.45)' }}
       >
@@ -72,7 +72,7 @@ export default function Home() {
             <div className="text-[0.68rem] uppercase tracking-[1.2px] text-[#7a7a9a] mt-1 font-dm">{s.label}</div>
           </div>
         ))}
-      </div>
+      </div> */}
 
       <button
         onClick={handleVoteClick}
