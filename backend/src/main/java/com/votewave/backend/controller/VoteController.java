@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.votewave.backend.repository.*;
 import com.votewave.backend.model.*;
 import com.votewave.backend.dto.VoteRequest;
+import com.votewave.backend.service.VoteService;
 
 @RestController
 @RequestMapping("/vote")
@@ -21,6 +22,9 @@ public class VoteController {
     @Autowired
     private CandidateRepository candidateRepo;
 
+    @Autowired
+    private VoteService voteService;
+
     @PostMapping
     public String vote(@RequestBody VoteRequest req) {
 
@@ -28,10 +32,18 @@ public class VoteController {
             throw new RuntimeException("User already voted");
         }
 
+        // Calculate suspicion score
+        int suspicionScore = voteService.calculateSuspicionScore(req.userId);
+
         Vote vote = new Vote();
         vote.setUserId(req.userId);
         vote.setCandidateId(req.candidateId);
+        vote.setSuspicionScore(suspicionScore);
+        vote.setTimestamp(System.currentTimeMillis());
         voteRepo.save(vote);
+
+        // Update user suspicion percentage
+        voteService.processVote(req.userId, suspicionScore);
 
         // update user
         User user = userRepo.findById(req.userId).orElseThrow();

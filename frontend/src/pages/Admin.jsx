@@ -5,6 +5,7 @@ const BAR_COLORS = ['#f5c6e0', '#b8f0d8', '#b8d8f0', '#f5d8b0', '#d4b8f0']
 
 export default function Admin() {
   const [candidates, setCandidates] = useState([])
+  const [usersSuspicion, setUsersSuspicion] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showModal, setShowModal] = useState(false)
@@ -12,9 +13,11 @@ export default function Admin() {
   const [adding, setAdding] = useState(false)
   const [formError, setFormError] = useState(null)
   const [resetting, setResetting] = useState(false)
+  const [activeTab, setActiveTab] = useState('results')
 
   useEffect(() => {
     fetchCandidates()
+    fetchUsersSuspicion()
   }, [])
 
   const fetchCandidates = async () => {
@@ -26,6 +29,15 @@ export default function Admin() {
       console.error(err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchUsersSuspicion = async () => {
+    try {
+      const res = await API.get('/admin/users-suspicion')
+      setUsersSuspicion(res.data || [])
+    } catch (err) {
+      console.error('Failed to fetch users suspicion', err)
     }
   }
 
@@ -77,6 +89,7 @@ export default function Admin() {
     try {
       await API.post('/admin/reset-election')
       setCandidates([])
+      setUsersSuspicion([])
       setError(null)
       alert('Election reset successfully!')
     } catch (err) {
@@ -115,77 +128,158 @@ export default function Admin() {
           </span>
         </div>
 
-        <div className="glass-card rounded-2xl p-8 max-w-2xl">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="font-bebas text-[1.8rem] tracking-wide text-[#111010]">Candidate Votes</h2>
-            <span className="font-dm text-[0.85rem] font-semibold text-[#7a7a9a]">
-              Total: {total.toLocaleString()}
-            </span>
-          </div>
+        {/* Tab Navigation */}
+        <div className="flex gap-2 mb-8">
+          <button
+            onClick={() => setActiveTab('results')}
+            className={`px-6 py-2.5 rounded-full text-[0.85rem] font-dm font-semibold transition-all ${
+              activeTab === 'results'
+                ? 'btn-dark'
+                : 'btn-ghost'
+            }`}
+          >
+            Voting Results
+          </button>
+          <button
+            onClick={() => setActiveTab('suspicion')}
+            className={`px-6 py-2.5 rounded-full text-[0.85rem] font-dm font-semibold transition-all ${
+              activeTab === 'suspicion'
+                ? 'btn-dark'
+                : 'btn-ghost'
+            }`}
+          >
+            User Suspicion Report
+          </button>
+        </div>
 
-          {loading && <p className="text-[0.85rem] text-[#7a7a9a]">Loading candidates...</p>}
-          {error && <p className="text-[0.85rem] text-red-500">{error}</p>}
-          {!loading && !error && candidates.length === 0 && (
-            <p className="text-[0.85rem] text-[#7a7a9a]">No candidates found</p>
-          )}
+        {/* Results Tab */}
+        {activeTab === 'results' && (
+          <>
+            <div className="glass-card rounded-2xl p-8 max-w-2xl">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="font-bebas text-[1.8rem] tracking-wide text-[#111010]">Candidate Votes</h2>
+                <span className="font-dm text-[0.85rem] font-semibold text-[#7a7a9a]">
+                  Total: {total.toLocaleString()}
+                </span>
+              </div>
 
-          <div className="space-y-6">
-            {!loading && !error && candidates.map((c, i) => {
-              const pct = total > 0 ? (((c.votes || 0) / total) * 100).toFixed(1) : 0
-              return (
-                <div key={c._id || c.id || i}>
-                  <div className="flex justify-between items-center font-dm text-[0.95rem] mb-2">
-                    <span className="font-semibold text-[#111010]">{c.name}</span>
-                    <div className="flex items-center gap-3">
-                      <span className="font-bebas text-[1.3rem] text-[#ff6b35]">{c.votes || 0}</span>
-                      <button
-                        onClick={() => handleDeleteCandidate(c._id || c.id)}
-                        className="text-red-500 hover:text-red-700 transition-colors text-[0.8rem] font-medium"
-                        title="Remove candidate"
-                      >
-                        ✕
-                      </button>
+              {loading && <p className="text-[0.85rem] text-[#7a7a9a]">Loading candidates...</p>}
+              {error && <p className="text-[0.85rem] text-red-500">{error}</p>}
+              {!loading && !error && candidates.length === 0 && (
+                <p className="text-[0.85rem] text-[#7a7a9a]">No candidates found</p>
+              )}
+
+              <div className="space-y-6">
+                {!loading && !error && candidates.map((c, i) => {
+                  const pct = total > 0 ? (((c.votes || 0) / total) * 100).toFixed(1) : 0
+                  return (
+                    <div key={c._id || c.id || i}>
+                      <div className="flex justify-between items-center font-dm text-[0.95rem] mb-2">
+                        <span className="font-semibold text-[#111010]">{c.name}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="font-bebas text-[1.3rem] text-[#ff6b35]">{c.votes || 0}</span>
+                          <button
+                            onClick={() => handleDeleteCandidate(c._id || c.id)}
+                            className="text-red-500 hover:text-red-700 transition-colors text-[0.8rem] font-medium"
+                            title="Remove candidate"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                      <div className="h-3 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.06)' }}>
+                        <div
+                          className="h-full rounded-full"
+                          style={{ width: `${pct}%`, background: BAR_COLORS[i % BAR_COLORS.length], transition: 'width 1.2s cubic-bezier(0.16,1,0.3,1)' }}
+                        />
+                      </div>
+                      <p className="text-[0.72rem] text-[#7a7a9a] mt-1">{pct}%</p>
                     </div>
-                  </div>
-                  <div className="h-3 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.06)' }}>
-                    <div
-                      className="h-full rounded-full"
-                      style={{ width: `${pct}%`, background: BAR_COLORS[i % BAR_COLORS.length], transition: 'width 1.2s cubic-bezier(0.16,1,0.3,1)' }}
-                    />
-                  </div>
-                  <p className="text-[0.72rem] text-[#7a7a9a] mt-1">{pct}%</p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
+                  )
+                })}
+              </div>
+            </div>
 
-        <div className="mt-8 glass-card rounded-2xl p-6 flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h3 className="font-bebas text-[1.3rem] tracking-wide text-[#111010]">Add Candidates</h3>
-            <p className="font-dm text-[0.8rem] text-[#7a7a9a] mt-0.5">Add new candidates to the election.</p>
-          </div>
-          <button 
-            onClick={() => setShowModal(true)}
-            className="btn-dark px-6 py-2.5 rounded-full text-[0.85rem]"
-          >
-            + Add Candidate
-          </button>
-        </div>
+            <div className="mt-8 glass-card rounded-2xl p-6 flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <h3 className="font-bebas text-[1.3rem] tracking-wide text-[#111010]">Add Candidates</h3>
+                <p className="font-dm text-[0.8rem] text-[#7a7a9a] mt-0.5">Add new candidates to the election.</p>
+              </div>
+              <button 
+                onClick={() => setShowModal(true)}
+                className="btn-dark px-6 py-2.5 rounded-full text-[0.85rem]"
+              >
+                + Add Candidate
+              </button>
+            </div>
 
-        <div className="mt-8 glass-card rounded-2xl p-6 flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h3 className="font-bebas text-[1.3rem] tracking-wide text-[#111010]">Reset Election</h3>
-            <p className="font-dm text-[0.8rem] text-[#7a7a9a] mt-0.5">Clear all candidates and reset user votes.</p>
+            <div className="mt-8 glass-card rounded-2xl p-6 flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <h3 className="font-bebas text-[1.3rem] tracking-wide text-[#111010]">Reset Election</h3>
+                <p className="font-dm text-[0.8rem] text-[#7a7a9a] mt-0.5">Clear all candidates and reset user votes.</p>
+              </div>
+              <button 
+                onClick={handleResetElection}
+                disabled={resetting}
+                className="px-6 py-2.5 rounded-full text-[0.85rem] bg-red-500 hover:bg-red-600 text-white font-dm font-semibold disabled:opacity-60"
+              >
+                {resetting ? 'Resetting...' : '↻ Reset Election'}
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Suspicion Report Tab */}
+        {activeTab === 'suspicion' && (
+          <div className="glass-card rounded-2xl p-8">
+            <h2 className="font-bebas text-[1.8rem] tracking-wide text-[#111010] mb-6">User Suspicion Report</h2>
+            
+            {usersSuspicion.length === 0 ? (
+              <p className="text-[0.85rem] text-[#7a7a9a]">No users found</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-[0.85rem]">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 font-dm font-semibold text-[#111010]">User Name</th>
+                      <th className="text-left py-3 px-4 font-dm font-semibold text-[#111010]">Email</th>
+                      <th className="text-center py-3 px-4 font-dm font-semibold text-[#111010]">Suspicion %</th>
+                      <th className="text-center py-3 px-4 font-dm font-semibold text-[#111010]">Voted</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {usersSuspicion.map((user, idx) => {
+                      const suspicion = parseFloat(user.suspicionPercentage)
+                      let suspicionColor = '#22c55e'
+                      if (suspicion > 70) suspicionColor = '#ef4444'
+                      else if (suspicion > 40) suspicionColor = '#f59e0b'
+                      
+                      return (
+                        <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
+                          <td className="py-3 px-4 font-dm text-[#111010]">{user.name}</td>
+                          <td className="py-3 px-4 font-dm text-[#7a7a9a] text-[0.8rem]">{user.email}</td>
+                          <td className="py-3 px-4 text-center">
+                            <span 
+                              className="font-bebas font-semibold"
+                              style={{ color: suspicionColor }}
+                            >
+                              {user.suspicionPercentage}%
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className="inline-block w-4 h-4 rounded-full" 
+                              style={{ background: user.hasVoted ? '#22c55e' : '#d1d5db' }}
+                            />
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-          <button 
-            onClick={handleResetElection}
-            disabled={resetting}
-            className="px-6 py-2.5 rounded-full text-[0.85rem] bg-red-500 hover:bg-red-600 text-white font-dm font-semibold disabled:opacity-60"
-          >
-            {resetting ? 'Resetting...' : '↻ Reset Election'}
-          </button>
-        </div>
+        )}
 
         {/* Modal */}
         {showModal && (

@@ -13,4 +13,6 @@ public class Vote {
 
     private String userId;
     private String candidateId;
+    private int suspicionScore;
+    private long timestamp;
 }
