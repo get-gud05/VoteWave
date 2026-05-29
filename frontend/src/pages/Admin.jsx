@@ -11,6 +11,7 @@ export default function Admin() {
   const [formData, setFormData] = useState({ name: '' })
   const [adding, setAdding] = useState(false)
   const [formError, setFormError] = useState(null)
+  const [resetting, setResetting] = useState(false)
 
   useEffect(() => {
     fetchCandidates()
@@ -60,11 +61,30 @@ export default function Admin() {
     try {
       await API.delete(`/candidates/${id}`)
       setCandidates(candidates.filter(c => (c._id || c.id) !== id))
-      setError(null) // Clear any previous errors
+      setError(null)
     } catch (err) {
       console.error('Delete error:', err)
       setError('Failed to delete candidate')
-      setTimeout(() => setError(null), 3000) // Clear error after 3 seconds
+      setTimeout(() => setError(null), 3000)
+    }
+  }
+
+  const handleResetElection = async () => {
+    if (!window.confirm('Are you sure you want to reset the election? This will delete all candidates and give all users their votes back.')) return
+
+    setResetting(true)
+    setError(null)
+    try {
+      await API.post('/admin/reset-election')
+      setCandidates([])
+      setError(null)
+      alert('Election reset successfully!')
+    } catch (err) {
+      console.error('Reset error:', err)
+      setError('Failed to reset election')
+      setTimeout(() => setError(null), 3000)
+    } finally {
+      setResetting(false)
     }
   }
 
@@ -150,6 +170,20 @@ export default function Admin() {
             className="btn-dark px-6 py-2.5 rounded-full text-[0.85rem]"
           >
             + Add Candidate
+          </button>
+        </div>
+
+        <div className="mt-8 glass-card rounded-2xl p-6 flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h3 className="font-bebas text-[1.3rem] tracking-wide text-[#111010]">Reset Election</h3>
+            <p className="font-dm text-[0.8rem] text-[#7a7a9a] mt-0.5">Clear all candidates and reset user votes.</p>
+          </div>
+          <button 
+            onClick={handleResetElection}
+            disabled={resetting}
+            className="px-6 py-2.5 rounded-full text-[0.85rem] bg-red-500 hover:bg-red-600 text-white font-dm font-semibold disabled:opacity-60"
+          >
+            {resetting ? 'Resetting...' : '↻ Reset Election'}
           </button>
         </div>
 
