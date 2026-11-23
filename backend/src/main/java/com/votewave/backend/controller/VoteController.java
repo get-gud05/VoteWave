@@ -32,7 +32,6 @@ public class VoteController {
             throw new RuntimeException("User already voted");
         }
 
-        // Calculate suspicion score
         int suspicionScore = voteService.calculateSuspicionScore(req.userId);
 
         Vote vote = new Vote();
@@ -42,15 +41,12 @@ public class VoteController {
         vote.setTimestamp(System.currentTimeMillis());
         voteRepo.save(vote);
 
-        // Update user suspicion percentage
         voteService.processVote(req.userId, suspicionScore);
 
-        // update user
         User user = userRepo.findById(req.userId).orElseThrow();
         user.setHasVoted(true);
         userRepo.save(user);
 
-        // update candidate votes
         Candidate c = candidateRepo.findById(req.candidateId).orElseThrow();
         c.setVotes(c.getVotes() + 1);
         candidateRepo.save(c);

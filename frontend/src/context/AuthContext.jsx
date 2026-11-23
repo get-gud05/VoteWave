@@ -14,7 +14,6 @@ export function AuthProvider({ children }) {
   const [toast, setToast]   = useState(null)
   const [loading, setLoading] = useState(true)
 
-  // Load user from localStorage on mount
   useEffect(() => {
     const savedUser = localStorage.getItem('user')
     if (savedUser) {

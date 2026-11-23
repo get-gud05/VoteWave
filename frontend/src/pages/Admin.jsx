@@ -127,8 +127,6 @@ export default function Admin() {
             Live
           </span>
         </div>
-
-        {/* Tab Navigation */}
         <div className="flex gap-2 mb-8">
           <button
             onClick={() => setActiveTab('results')}
@@ -151,8 +149,6 @@ export default function Admin() {
             User Suspicion Report
           </button>
         </div>
-
-        {/* Results Tab */}
         {activeTab === 'results' && (
           <>
             <div className="glass-card rounded-2xl p-8 max-w-2xl">
@@ -228,8 +224,6 @@ export default function Admin() {
             </div>
           </>
         )}
-
-        {/* Suspicion Report Tab */}
         {activeTab === 'suspicion' && (
           <div className="glass-card rounded-2xl p-8">
             <h2 className="font-bebas text-[1.8rem] tracking-wide text-[#111010] mb-6">User Suspicion Report</h2>
@@ -280,8 +274,6 @@ export default function Admin() {
             )}
           </div>
         )}
-
-        {/* Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="glass-card rounded-2xl p-8 max-w-md w-full animate-in">

@@ -56,24 +56,6 @@ export default function Home() {
           </button>
         )}
       </div>
-
-      {/* <div
-        className="flex mt-14 rounded-2xl overflow-hidden divide-x divide-black/[0.07] animate-hero-4"
-        style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.45)' }}
-      >
-        {[
-          { num: '4.2K', label: 'Votes Cast' },
-          { num: '6',    label: 'Candidates' },
-          { num: '99.8%',label: 'Fraud Free' },
-          { num: '2',    label: 'Days Left' },
-        ].map(s => (
-          <div key={s.label} className="px-8 py-5 text-center hover:bg-white/30 transition-colors duration-200">
-            <div className="font-bebas text-[2.1rem] text-[#111010] leading-none">{s.num}</div>
-            <div className="text-[0.68rem] uppercase tracking-[1.2px] text-[#7a7a9a] mt-1 font-dm">{s.label}</div>
-          </div>
-        ))}
-      </div> */}
-
       <button
         onClick={handleVoteClick}
         className="animate-badge absolute bottom-[13%] right-[6%] hidden lg:flex flex-col items-center justify-center w-28 h-28 rounded-full text-white font-bebas text-[1.3rem] leading-[1.1] cursor-pointer"

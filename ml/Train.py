@@ -4,13 +4,9 @@ from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 import joblib
 
-# -----------------------------------------
-# Synthetic Dataset Generation
-# -----------------------------------------
 
 np.random.seed(42)
 
-# Normal voting traffic
 normal_votes_per_minute = np.random.normal(
     loc=25,
     scale=5,
@@ -23,7 +19,6 @@ normal_requests_from_same_ip = np.random.normal(
     size=1000
 )
 
-# Suspicious traffic spikes
 attack_votes_per_minute = np.random.normal(
     loc=500,
     scale=100,
@@ -36,7 +31,6 @@ attack_requests_from_same_ip = np.random.normal(
     size=50
 )
 
-# Combine traffic patterns
 votes_per_minute = np.concatenate([
     normal_votes_per_minute,
     attack_votes_per_minute
@@ -47,23 +41,16 @@ requests_from_same_ip = np.concatenate([
     attack_requests_from_same_ip
 ])
 
-# Create DataFrame
 dataset = pd.DataFrame({
     "votes_per_minute": votes_per_minute,
     "requests_from_same_ip": requests_from_same_ip
 })
 
-# -----------------------------------------
-# Feature Scaling
-# -----------------------------------------
 
 scaler = StandardScaler()
 
 scaled_dataset = scaler.fit_transform(dataset)
 
-# -----------------------------------------
-# Isolation Forest Model
-# -----------------------------------------
 
 model = IsolationForest(
     n_estimators=200,
@@ -73,9 +60,6 @@ model = IsolationForest(
 
 model.fit(scaled_dataset)
 
-# -----------------------------------------
-# Save Artifacts
-# -----------------------------------------
 
 joblib.dump(model, "isolation_forest_model.pkl")
 joblib.dump(scaler, "scaler.pkl")
