@@ -60,12 +60,12 @@ target/
 mvnw
 mvnw.cmd
 
-application.properties
 application.yml
 application-*.properties
 
 .env
 .env.*
+!.env.example
 
 *.log
 
