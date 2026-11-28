@@ -11,6 +11,8 @@ import java.util.List;
 @Service
 public class VoteService {
 
+    private static final long ONE_MINUTE_MS = 60_000;
+
     @Autowired
     private VoteRepository voteRepository;
 
@@ -43,13 +45,13 @@ public class VoteService {
     }
 
     private float calculateVotesPerMinute() {
-        long oneMinuteAgo = System.currentTimeMillis() - 60000;
+        long oneMinuteAgo = System.currentTimeMillis() - ONE_MINUTE_MS;
         List<Vote> recentVotes = voteRepository.findByTimestampGreaterThan(oneMinuteAgo);
         return (float) recentVotes.size();
     }
 
     private float calculateRequestsFromSameIp(String userId) {
-        long oneMinuteAgo = System.currentTimeMillis() - 60000;
+        long oneMinuteAgo = System.currentTimeMillis() - ONE_MINUTE_MS;
         List<Vote> userRecentVotes = voteRepository.findByUserIdAndTimestampGreaterThan(userId, oneMinuteAgo);
         return (float) userRecentVotes.size();
     }
